@@ -360,6 +360,14 @@ min-width: 0;
   }
 }
 
+.artwork-detail__img {
+  width: 100%;
+  max-width: 500px;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 /* FOOTER */
 
 #footer .container {
@@ -496,6 +504,7 @@ min-width: 0;
     font-size: 1.1rem;
     font-family: 'Oxanium', sans-serif;
     margin-bottom: 12px;
+    color: #eaeaf2;
 }
 
 .artwork__info p{
