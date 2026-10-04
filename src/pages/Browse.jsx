@@ -9,6 +9,21 @@ const Browse = () => {
   const [objectIDs, setObjectIDs] = useState([]);
   const [searchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
+  const [sortOption, setSortOption] = useState("default");
+  const sortedArtworks = [...artworks].sort((a, b) => {
+    if (sortOption === "title-asc") {
+      return a.title.localeCompare(b.title);
+    }
+    if (sortOption === "title-desc") {
+      return b.title.localeCompare(a.title);
+    }
+    if (sortOption === "date-new") {
+      return b.objectBeginDate - a.objectBeginDate;
+    }
+    if (sortOption === "date-old") {
+      return a.objectBeginDate - b.objectBeginDate;
+    }
+  })
 
   useEffect(() => {
     if (!query.trim()) {
@@ -71,7 +86,11 @@ const Browse = () => {
       <section id="results">
         <div className="container">
           <div className="filter">
-            <select id="sort-select">
+            <select
+              id="sort-select"
+              value={sortOption}
+              onChange={(e) => setSortOption(e.target.value)}
+            >
               <option value="default">Sort Results</option>
               <option value="title-asc">Title A-Z</option>
               <option value="title-desc">Title Z-A</option>
@@ -81,7 +100,7 @@ const Browse = () => {
           </div>
 
           <div className="artworks">
-            {artworks.map((artwork) => (
+            {sortedArtworks.map((artwork) => (
               <ArtworkCard key={artwork.objectID} artwork={artwork} />
             ))}
           </div>
