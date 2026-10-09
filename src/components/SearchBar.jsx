@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const SearchBar = () => {
+const SearchBar = ({ isLoading, loadingMessage }) => {
   const [query, setQuery] = useState("");
   const navigate = useNavigate();
   const handleSubmit = (event) => {
@@ -34,7 +34,10 @@ const SearchBar = () => {
       </div>
 
       <p className="search__status">
-        <span className="status__text">READY</span>
+        <span className="status__text">
+          {isLoading && <span className="loading-spinner"></span>}
+          {isLoading ? loadingMessage : "READY"}
+        </span>
       </p>
     </div>
   );
