@@ -15,11 +15,13 @@ const loadingStates = [
 const Browse = () => {
   const [artworks, setArtworks] = useState([]);
   const [objectIDs, setObjectIDs] = useState([]);
+  const [totalResults, setTotalResults] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingIndex, setLoadingIndex] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
   const query = searchParams.get("q") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
+  const hasNextPage = currentPage * 6 < totalResults;
   const [sortOption, setSortOption] = useState("default");
   const sortedArtworks = [...artworks].sort((a, b) => {
     if (sortOption === "title-asc") {
@@ -39,6 +41,7 @@ const Browse = () => {
   useEffect(() => {
     if (!query.trim()) {
       setObjectIDs([]);
+      setTotalResults(0);
       setIsLoading(false);
       return;
     }
@@ -47,6 +50,7 @@ const Browse = () => {
       setIsLoading(true);
       setLoadingIndex(0);
       setArtworks([]);
+      setObjectIDs([]);
       const offset = (currentPage - 1) * 6;
 
       try {
@@ -55,7 +59,14 @@ const Browse = () => {
         );
 
         const data = response.data;
-        setObjectIDs(data.objectIDs ?? []);
+        const newObjectIDs = data.objectIDs ?? [];
+
+        setTotalResults(data.total ?? 0);
+        setObjectIDs(newObjectIDs);
+
+        if (newObjectIDs.length === 0) {
+          setIsLoading(false);
+        }
       } catch (error) {
         console.error("Error fetching artwork IDs:", error);
         setIsLoading(false);
@@ -66,6 +77,17 @@ const Browse = () => {
   }, [query, currentPage]);
 
   useEffect(() => {
+    if (!query.trim()) {
+      setArtworks([]);
+      setIsLoading(false);
+      return;
+    }
+
+    if (objectIDs.length === 0) {
+      setArtworks([]);
+      return;
+    }
+
     if (objectIDs.length === 0) {
       setArtworks([]);
       setIsLoading(false);
@@ -103,7 +125,7 @@ const Browse = () => {
     };
 
     fetchArtworks();
-  }, [objectIDs]);
+  }, [objectIDs, query]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -169,6 +191,7 @@ const Browse = () => {
                 setSearchParams({ q: query, page: String(currentPage + 1) })
               }
               aria-label="Next page"
+              disabled={!hasNextPage}
             >
               →
             </button>
