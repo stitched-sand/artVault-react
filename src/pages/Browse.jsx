@@ -48,7 +48,7 @@ const Browse = () => {
 
     const fetchObjectIDs = async () => {
       setIsLoading(true);
-      setLoadingIndex(0);
+      setLoadingIndex((currentPage - 1) % loadingStates.length);
       setArtworks([]);
       setObjectIDs([]);
       const offset = (currentPage - 1) * 6;
@@ -88,16 +88,10 @@ const Browse = () => {
       return;
     }
 
-    if (objectIDs.length === 0) {
-      setArtworks([]);
-      setIsLoading(false);
-      return;
-    }
-
     const fetchArtworks = async () => {
       const startTime = Date.now();
       try {
-        const responses = await Promise.all(
+        const results = await Promise.allSettled(
           objectIDs.map((id) =>
             axios.get(
               `https://collectionapi.metmuseum.org/public/collection/v1/objects/${id}`,
@@ -105,22 +99,15 @@ const Browse = () => {
           ),
         );
 
-        const artworksData = responses.map((response) => response.data);
+        const artworksData = results
+          .filter((result) => result.status === "fulfilled")
+          .map((result) => result.value.data);
 
         setArtworks(artworksData);
       } catch (error) {
         console.error("Error fetching artwork details:", error);
       } finally {
-        const elapsedTime = Date.now() - startTime;
-        const minimumLoadingTime = 2500;
-        const remainingTime = minimumLoadingTime - elapsedTime;
-
-        setTimeout(
-          () => {
-            setIsLoading(false);
-          },
-          Math.max(0, remainingTime),
-        );
+        setIsLoading(false);
       }
     };
 
@@ -128,16 +115,34 @@ const Browse = () => {
   }, [objectIDs, query]);
 
   useEffect(() => {
-    if (!isLoading) {
-      return;
-    }
+  if (!isLoading) {
+    return;
+  }
 
-    const interval = setInterval(() => {
-      setLoadingIndex((prevIndex) => (prevIndex + 1) % loadingStates.length);
-    }, 2000);
+  let intervalId;
 
-    return () => clearInterval(interval);
-  }, [isLoading]);
+  const firstMessageTimeout = setTimeout(() => {
+    setLoadingIndex(1);
+
+    intervalId = setInterval(() => {
+      setLoadingIndex(
+        (prevIndex) => (prevIndex + 1) % loadingStates.length,
+      );
+    }, 2500);
+  }, 2500);
+
+  return () => {
+    clearTimeout(firstMessageTimeout);
+    clearInterval(intervalId);
+  };
+}, [isLoading]);
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [currentPage, query]);
 
   return (
     <main>
