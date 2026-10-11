@@ -3,6 +3,7 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import ArtworkDetail from "./pages/ArtworkDetail";
+import Footer from "./components/Footer";
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
       <Route path="/browse" element={<Browse/>}/>
       <Route path="/artwork/:id" element={<ArtworkDetail/>}/>
     </Routes>
+
+    <Footer />
     </>
   )
 }
